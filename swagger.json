@@ -1,0 +1,243 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+      "title": "User Management API",
+      "version": "1.0.0",
+      "description": "API documentation for user registration, login, admin and password reset features."
+    },
+    "servers": [
+      {
+        "url": "http://localhost:8000/api"
+      }
+    ],
+    "paths": {
+      "/auth/register": {
+        "post": {
+          "summary": "Register a new user",
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "firstName": { "type": "string" },
+                    "lastName": { "type": "string" },
+                    "email": { "type": "string" },
+                    "phone": { "type": "string" },
+                    "gender": { "type": "string", "enum": ["male", "female"] },
+                    "nationalId": { "type": "string" },
+                    "role": { "type": "string", "enum": ["user", "admin"] },
+                    "password": { "type": "string" }
+                  },
+                  "required": ["firstName", "lastName", "email", "phone", "gender", "nationalId", "password"]
+                }
+              }
+            }
+          },
+          "responses": {
+            "201": { "description": "User registered successfully" },
+            "400": { "description": "Email already exists" }
+          }
+        }
+      },
+      "/auth/login": {
+        "post": {
+          "summary": "Login a user",
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "email": { "type": "string" },
+                    "password": { "type": "string" }
+                  },
+                  "required": ["email", "password"]
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": { "description": "Login successful, returns token" },
+            "400": { "description": "Invalid credentials" },
+            "404": { "description": "User not found" }
+          }
+        }
+      },
+      "/auth/me": {
+        "get": {
+          "summary": "Get current user info",
+          "security": [{ "bearerAuth": [] }],
+          "responses": {
+            "200": { "description": "User info returned" },
+            "401": { "description": "Unauthorized" }
+          }
+        }
+      },
+      "/auth/request-password-reset": {
+        "post": {
+          "summary": "Request a password reset link",
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "email": { "type": "string" }
+                  },
+                  "required": ["email"]
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": { "description": "Reset email sent" },
+            "404": { "description": "User not found" }
+          }
+        }
+      },
+      "/auth/reset-password": {
+        "post": {
+          "summary": "Reset password using token",
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "token": { "type": "string" },
+                    "newPassword": { "type": "string" }
+                  },
+                  "required": ["token", "newPassword"]
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": { "description": "Password updated" },
+            "400": { "description": "Invalid or expired token" }
+          }
+        }
+      },
+      "/admin/users": {
+        "get": {
+          "summary": "Get all users (admin only)",
+          "security": [{ "bearerAuth": [] }],
+          "responses": {
+            "200": { "description": "Users returned" },
+            "403": { "description": "Access denied" }
+          }
+        }
+      },
+      "/admin/users/search": {
+        "get": {
+          "summary": "Search users by email, name, or phone",
+          "security": [{ "bearerAuth": [] }],
+          "parameters": [
+            {
+              "name": "query",
+              "in": "query",
+              "required": true,
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "responses": {
+            "200": { "description": "Search results returned" }
+          }
+        }
+      },
+      "/admin/users/{userId}": {
+        "put": {
+          "summary": "Update a specific user",
+          "security": [{ "bearerAuth": [] }],
+          "parameters": [
+            {
+              "name": "userId",
+              "in": "path",
+              "required": true,
+              "schema": { "type": "integer" }
+            }
+          ],
+          "requestBody": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": { "description": "User updated" }
+          }
+        },
+        "delete": {
+          "summary": "Delete a specific user",
+          "security": [{ "bearerAuth": [] }],
+          "parameters": [
+            {
+              "name": "userId",
+              "in": "path",
+              "required": true,
+              "schema": { "type": "integer" }
+            }
+          ],
+          "responses": {
+            "200": { "description": "User deleted" }
+          }
+        }
+      },
+      "/admin/delete-me": {
+        "delete": {
+          "summary": "Delete logged-in admin account",
+          "security": [{ "bearerAuth": [] }],
+          "responses": {
+            "200": { "description": "Admin account deleted" }
+          }
+        }
+      },
+      "/admin/me-user": {
+        "delete": {
+          "summary": "Delete your own user account",
+          "security": [{ "bearerAuth": [] }],
+          "responses": {
+            "200": { "description": "User account deleted" }
+          }
+        }
+      },
+      "/admin/update-me": {
+        "put": {
+          "summary": "Update your own user/admin account",
+          "security": [{ "bearerAuth": [] }],
+          "requestBody": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": { "description": "Account updated" }
+          }
+        }
+      }
+    },
+    "components": {
+      "securitySchemes": {
+        "bearerAuth": {
+          "type": "http",
+          "scheme": "bearer",
+          "bearerFormat": "JWT"
+        }
+      }
+    }
+  }
+  
